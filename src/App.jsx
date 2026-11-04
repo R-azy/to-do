@@ -3,32 +3,7 @@ import './App.css';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
-const INITIAL_FALLBACK_TASKS = [
-  {
-    id: 'task-1',
-    text: 'Review project roadmap and complete assignments',
-    isDone: false,
-    category: 'General',
-    priority: 'medium',
-    createdAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-  },
-  {
-    id: 'task-2',
-    text: 'Test task creation, toggle Done / Not Done, and delete button',
-    isDone: false,
-    category: 'General',
-    priority: 'medium',
-    createdAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-  },
-  {
-    id: 'task-3',
-    text: 'Connect Express.js backend to MongoDB database',
-    isDone: true,
-    category: 'General',
-    priority: 'medium',
-    createdAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-  }
-];
+const INITIAL_FALLBACK_TASKS = [];
 
 export default function App() {
   // Page Routing: 'auth' (Page 1) | 'todos' (Page 2)
@@ -67,7 +42,14 @@ export default function App() {
   const [tasks, setTasks] = useState(() => {
     try {
       const saved = localStorage.getItem('taskflow_tasks');
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          return parsed.filter(
+            (t) => t.id !== 'task-1' && t.id !== 'task-2' && t.id !== 'task-3'
+          );
+        }
+      }
     } catch (e) {
       console.warn('Could not read localStorage:', e);
     }
@@ -416,12 +398,6 @@ export default function App() {
         console.warn('Failed to clear completed in MongoDB:', err);
       }
     }
-  };
-
-  // RESET SAMPLE TASKS
-  const handleResetSamples = () => {
-    setTasks(INITIAL_FALLBACK_TASKS);
-    showToast('Loaded sample tasks.');
   };
 
   // CLEAR ALL
@@ -842,27 +818,6 @@ export default function App() {
                     ? 'Type a task above and press Enter or Add Task.'
                     : 'Switch filters or add a new task above.'}
                 </p>
-                {totalCount === 0 && (
-                  <div className="quick-starters">
-                    <button
-                      type="button"
-                      className="starter-btn"
-                      onClick={() => {
-                        setInputText('Review project roadmap');
-                        inputRef.current?.focus();
-                      }}
-                    >
-                      Project Roadmap
-                    </button>
-                    <button
-                      type="button"
-                      className="starter-btn"
-                      onClick={handleResetSamples}
-                    >
-                      Restore Samples
-                    </button>
-                  </div>
-                )}
               </div>
             ) : (
               filteredTasks.map((task) => (
@@ -990,15 +945,7 @@ export default function App() {
                 </button>
               )}
 
-              {totalCount === 0 ? (
-                <button
-                  type="button"
-                  className="footer-glass-btn"
-                  onClick={handleResetSamples}
-                >
-                  Load Sample Tasks
-                </button>
-              ) : (
+              {totalCount > 0 && (
                 <button
                   type="button"
                   className="footer-glass-btn"
