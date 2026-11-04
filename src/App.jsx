@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import './App.css';
 
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 const INITIAL_FALLBACK_TASKS = [
   {
@@ -665,8 +665,8 @@ export default function App() {
                 {authLoading
                   ? 'Please wait...'
                   : authMode === 'login'
-                  ? 'Sign In'
-                  : 'Create Account'}
+                    ? 'Sign In'
+                    : 'Create Account'}
               </button>
 
               <div className="auth-footer-links">
@@ -834,8 +834,8 @@ export default function App() {
                   {currentFilter === 'done'
                     ? 'No completed tasks yet'
                     : currentFilter === 'not_done'
-                    ? 'All clear! No pending tasks.'
-                    : 'Your todo list is empty'}
+                      ? 'All clear! No pending tasks.'
+                      : 'Your todo list is empty'}
                 </h3>
                 <p className="empty-desc">
                   {currentFilter === 'all'
