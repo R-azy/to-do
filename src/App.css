@@ -31,14 +31,17 @@
   box-shadow: var(--glass-specular), 0 10px 25px rgba(0, 0, 0, 0.35);
   border-radius: var(--radius-pill);
   margin-bottom: 1.75rem;
-  max-width: 680px;
-  width: 100%;
+  width: fit-content;
+  min-width: min(100%, 440px);
+  max-width: min(100%, 680px);
   transition: max-width 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease;
 }
 
-/* Dynamically match the Sign In card width when on auth page */
+/* Dynamically allow the capsule to grow to fit without overflowing */
 .page-auth .vision-top-capsule {
-  max-width: 440px;
+  width: fit-content;
+  min-width: min(100%, 440px);
+  max-width: min(100%, 680px);
 }
 
 .vision-top-capsule:hover {
@@ -117,6 +120,8 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .glass-pill-btn {
@@ -131,6 +136,7 @@
   justify-content: center;
   font-size: 0.85rem;
   transition: all 0.2s ease;
+  flex-shrink: 0;
 }
 
 .glass-pill-btn:hover {
@@ -143,14 +149,40 @@
 .user-account-capsule {
   display: inline-flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.55rem;
   background: var(--glass-bg-pill);
-  padding: 0.25rem 0.85rem;
+  padding: 0.25rem 0.75rem;
   border-radius: var(--radius-pill);
   border: 1px solid var(--glass-border);
   font-size: 0.8rem;
   font-weight: 600;
   color: var(--text-primary);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.user-name-text {
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.user-avatar-img {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  flex-shrink: 0;
+}
+
+.user-avatar-placeholder {
+  font-size: 0.85rem;
+  line-height: 1;
+  flex-shrink: 0;
 }
 
 .user-logout-btn {
@@ -161,6 +193,9 @@
   border: 1px solid rgba(255, 255, 255, 0.18);
   color: var(--text-secondary);
   font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+  cursor: pointer;
   transition: all 0.2s ease;
 }
 
@@ -341,6 +376,80 @@
   opacity: 0.6;
   cursor: not-allowed;
   transform: none;
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  margin: 0.85rem 0 0.75rem;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--glass-border);
+}
+
+.auth-divider span {
+  padding: 0 0.75rem;
+}
+
+.google-btn-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 0.35rem;
+}
+
+.google-btn-container > div {
+  width: 100% !important;
+  display: flex !important;
+  justify-content: center !important;
+}
+
+.google-custom-btn {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-primary);
+  font-size: 0.92rem;
+  font-weight: 600;
+  border: 1px solid var(--glass-border);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 4px 12px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 0.35rem;
+}
+
+[data-theme="light"] .google-custom-btn {
+  background: #ffffff;
+  color: #0f172a;
+  border-color: rgba(0, 0, 0, 0.12);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.google-custom-btn:hover {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.32);
+  transform: translateY(-1px);
+}
+
+[data-theme="light"] .google-custom-btn:hover {
+  background: #f8fafc;
+  border-color: rgba(0, 0, 0, 0.2);
 }
 
 .auth-footer-links {
@@ -994,6 +1103,17 @@
 @media (max-width: 720px) {
   .vision-workspace {
     padding: 1.25rem 0.85rem 3rem;
+  }
+
+  .vision-top-capsule {
+    padding: 0.45rem 0.75rem;
+    gap: 0.5rem;
+    min-width: 0;
+    width: 100%;
+  }
+
+  .user-name-text {
+    max-width: 85px;
   }
 
   .vision-window {

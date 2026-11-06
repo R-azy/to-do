@@ -2,6 +2,7 @@ import express from 'express';
 import jwt from 'jsonwebtoken';
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
+import { OAuth2Client } from 'google-auth-library';
 import User from '../models/User.js';
 
 const router = express.Router();
@@ -159,6 +160,112 @@ router.post('/login', async (req, res) => {
   } catch (err) {
     console.error('Login error:', err);
     res.status(500).json({ message: 'Server error during login', error: err.message });
+  }
+});
+
+// POST /api/auth/google - Authenticate user with Google ID token
+router.post('/google', async (req, res) => {
+  try {
+    const idToken = req.body.credential || req.body.idToken || req.body.token;
+    if (!idToken) {
+      return res.status(400).json({ message: 'Google credential (ID token) is required' });
+    }
+
+    const googleClientId = process.env.GOOGLE_CLIENT_ID;
+    const client = new OAuth2Client(googleClientId);
+
+    let ticket;
+    try {
+      ticket = await client.verifyIdToken({
+        idToken,
+        audience: googleClientId || undefined
+      });
+    } catch (verifyErr) {
+      return res.status(401).json({ message: 'Invalid Google credential', error: verifyErr.message });
+    }
+
+    const payload = ticket.getPayload();
+    if (!payload || !payload.email) {
+      return res.status(400).json({ message: 'Google account did not return an email address' });
+    }
+
+    const cleanEmail = payload.email.toLowerCase().trim();
+    const name = payload.name?.trim() || cleanEmail.split('@')[0] || 'Google User';
+    const googleId = payload.sub;
+    const avatar = payload.picture || null;
+
+    // Check if MongoDB Atlas is connected
+    if (mongoose.connection.readyState === 1) {
+      let user = await User.findOne({ email: cleanEmail });
+
+      if (user) {
+        let modified = false;
+        if (!user.googleId && googleId) {
+          user.googleId = googleId;
+          modified = true;
+        }
+        if (!user.avatar && avatar) {
+          user.avatar = avatar;
+          modified = true;
+        }
+        if (modified) {
+          await user.save();
+        }
+      } else {
+        user = new User({
+          name,
+          email: cleanEmail,
+          googleId,
+          avatar,
+          password: null
+        });
+        await user.save();
+      }
+
+      const token = generateToken(user._id);
+      return res.json({
+        message: 'Google login successful!',
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          avatar: user.avatar || null
+        },
+        token
+      });
+    }
+
+    // Fallback if Atlas is offline or syncing
+    let fallbackUser = fallbackUsers.find((u) => u.email === cleanEmail);
+    if (!fallbackUser) {
+      fallbackUser = {
+        id: 'usr_' + Date.now(),
+        name,
+        email: cleanEmail,
+        googleId,
+        avatar,
+        createdAt: new Date()
+      };
+      fallbackUsers.push(fallbackUser);
+    } else {
+      if (!fallbackUser.googleId) fallbackUser.googleId = googleId;
+      if (!fallbackUser.avatar) fallbackUser.avatar = avatar;
+    }
+
+    const token = generateToken(fallbackUser.id);
+    return res.json({
+      message: 'Google login successful!',
+      user: {
+        id: fallbackUser.id,
+        name: fallbackUser.name,
+        email: fallbackUser.email,
+        avatar: fallbackUser.avatar || null
+      },
+      token
+    });
+  } catch (err) {
+    console.error('Google login error:', err.message);
+    res.status(500).json({ message: 'Server error during Google login', error: err.message });
   }
 });
 
